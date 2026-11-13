@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0F2A3D">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>FineGuard Driver</title>
+<style>
+:root{--navy:#0F2A3D;--paper:#F4F6F8;--ink:#14202B;--muted:#4F606D;--teal:#0B6E78;--amber:#F2B544;--red:#C8102E;--green:#15703A;--line:#D5DCE2}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--paper);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans","Noto Naskh Arabic",sans-serif}
+body{display:flex;flex-direction:column;min-height:100%}
+header{background:var(--navy);color:#fff;padding:14px 16px calc(14px) ;padding-top:max(14px,env(safe-area-inset-top));display:flex;align-items:center;justify-content:space-between;gap:12px}
+header .who{font-size:13px;color:#C9D6E0}
+header .name{font-size:18px;font-weight:700}
+.langs{display:flex;gap:4px;background:rgba(255,255,255,.12);border-radius:999px;padding:4px}
+.langs button{font:inherit;font-size:14px;font-weight:600;min-width:44px;min-height:36px;border:0;border-radius:999px;background:transparent;color:#fff;cursor:pointer}
+.langs button.on{background:#fff;color:var(--navy)}
+main{flex:1;padding:16px;display:flex;flex-direction:column;gap:14px;overflow-y:auto}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px}
+.speed{border-radius:20px;padding:20px;background:#fff;border:1px solid var(--line);transition:background .2s}
+.speed.over{background:var(--red);color:#fff;border-color:var(--red)}
+.speed .lbl{font-size:14px;font-weight:600;opacity:.85}
+.speed .row{display:flex;justify-content:space-between;align-items:center}
+.speed .v{font-size:84px;font-weight:800;line-height:1;letter-spacing:-2px}
+.speed .u{font-size:20px;font-weight:600;margin-inline-start:6px}
+.sign{width:96px;height:96px;border-radius:50%;border:8px solid var(--red);background:#fff;color:var(--ink);display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:800;flex:none}
+.status{margin-top:12px;font-size:16px;font-weight:600;min-height:22px}
+.gps{font-size:13px;color:var(--muted);margin-top:6px}
+.speed.over .gps{color:#FFE3E8}
+.btn{font:inherit;font-size:17px;font-weight:700;min-height:52px;border-radius:12px;border:0;padding:0 16px;cursor:pointer;width:100%}
+.btn.primary{background:var(--teal);color:#fff}
+.btn.stop{background:var(--ink);color:#fff}
+.btn.ghost{background:#fff;color:var(--ink);border:1px dashed #8A99A6}
+.btn.small{min-height:44px;font-size:15px;font-weight:600}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.limit{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.limit .ctrl{display:flex;align-items:center;gap:10px}
+.limit .ctrl button{width:52px;height:52px;border-radius:12px;border:1px solid var(--line);background:#fff;font-size:26px;font-weight:700;cursor:pointer;color:var(--ink)}
+.limit .ctrl b{font-size:28px;min-width:56px;text-align:center}
+.score{display:flex;align-items:center;gap:16px}
+.ring{width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;flex:none}
+.muted{color:var(--muted);font-size:14px}
+h2{font-size:17px;margin:0 0 10px}
+label{display:block;font-size:14px;font-weight:600;margin:12px 0 6px}
+input,select{font:inherit;font-size:17px;width:100%;min-height:48px;border:1px solid var(--line);border-radius:10px;padding:0 12px;background:#fff;color:var(--ink)}
+.ev{display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-top:1px solid #EEF1F4;font-size:15px}
+.ev:first-of-type{border-top:0}
+.ev .t{font-size:13px;color:var(--muted)}
+.ev b{color:var(--red);white-space:nowrap}
+nav{display:flex;background:#fff;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;font:inherit;font-size:14px;font-weight:600;min-height:56px;border:0;background:transparent;color:var(--muted);cursor:pointer}
+nav button.on{color:var(--teal);box-shadow:inset 0 3px 0 var(--teal)}
+.hide{display:none!important}
+.note{font-size:13px;color:var(--muted);line-height:1.45}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pill{display:inline-block;font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:#E6F4EA;color:var(--green)}
+.pill.off{background:#FDEDE4;color:#B4410C}
+</style>
+</head>
+<body>
+<header>
+  <div><div class="who" id="who"></div><div class="name" id="hello"></div></div>
+  <div class="langs" role="group" aria-label="Language">
+    <button type="button" data-lang="en">EN</button>
+    <button type="button" data-lang="ar">ع</button>
+    <button type="button" data-lang="ur">اردو</button>
+  </div>
+</header>
+
+<main id="v-drive">
+  <section class="speed" id="speedCard" aria-live="polite">
+    <div class="row">
+      <div>
+        <div class="lbl" data-t="speed"></div>
+        <div><span class="v" id="spd">--</span><span class="u">km/h</span></div>
+      </div>
+      <div class="sign" id="sign" aria-label="Speed limit">--</div>
+    </div>
+    <div class="status" id="status"></div>
+    <div class="gps" id="gps"></div>
+  </section>
+
+  <button type="button" class="btn primary" id="startBtn" data-t="start"></button>
+
+  <section class="card limit">
+    <div><div style="font-weight:700" data-t="limit"></div><div class="muted" data-t="limitNote"></div></div>
+    <div class="ctrl">
+      <button type="button" id="minus" aria-label="Lower limit">−</button>
+      <b id="limitVal">--</b>
+      <button type="button" id="plus" aria-label="Raise limit">+</button>
+    </div>
+  </section>
+
+  <section class="card score">
+    <div class="ring" id="ring">--</div>
+    <div><div style="font-weight:700" data-t="score"></div><div class="muted" id="scoreNote"></div></div>
+  </section>
+
+  <button type="button" class="btn ghost small" id="testBtn" data-t="test"></button>
+</main>
+
+<main id="v-log" class="hide">
+  <section class="card">
+    <h2 data-t="events"></h2>
+    <div id="events"></div>
+  </section>
+  <div class="grid2">
+    <button type="button" class="btn primary small" id="shareCsv" data-t="shareCsv"></button>
+    <button type="button" class="btn ghost small" id="shareWa" data-t="shareWa"></button>
+  </div>
+  <p class="note" data-t="logNote"></p>
+</main>
+
+<main id="v-setup" class="hide">
+  <section class="card">
+    <h2 data-t="setup"></h2>
+    <label for="fName" data-t="fName"></label><input id="fName" autocomplete="name">
+    <label for="fPlate" data-t="fPlate"></label><input id="fPlate" autocapitalize="characters">
+    <label for="fLimit" data-t="fLimit"></label>
+    <select id="fLimit"></select>
+    <label for="fTol" data-t="fTol"></label>
+    <select id="fTol"><option value="0">0</option><option value="3">3</option><option value="5">5</option><option value="10">10</option></select>
+    <div style="height:14px"></div>
+    <button type="button" class="btn primary" id="saveBtn" data-t="save"></button>
+  </section>
+  <section class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-weight:700" data-t="offline"></span><span class="pill" id="offPill"></span></div>
+    <p class="note" data-t="offlineNote"></p>
+    <button type="button" class="btn ghost small" id="clearBtn" data-t="clear"></button>
+  </section>
+</main>
+
+<nav>
+  <button type="button" data-view="drive" data-t="tDrive"></button>
+  <button type="button" data-view="log" data-t="tLog"></button>
+  <button type="button" data-view="setup" data-t="tSetup"></button>
+</nav>
+
+<script>
+(function(){
+'use strict';
+var T={
+ en:{speed:'Your speed',start:'Start trip',stop:'End trip',limit:'Speed limit',limitNote:'Change only when stopped',score:'Safety score (7 days)',test:'Test the alert',events:'Over-speed log',shareCsv:'Share log (CSV)',shareWa:'Send summary',logNote:'Everything is saved on this phone. Send the log when you have Wi-Fi.',setup:'Driver setup',fName:'Driver name',fPlate:'Vehicle plate',fLimit:'Company speed limit (km/h)',fTol:'Alert above limit by (km/h)',save:'Save',offline:'Works offline',offlineNote:'GPS works without internet. Install once on Wi-Fi: browser menu → Add to Home screen. Keep the screen on during trips.',clear:'Clear log',tDrive:'Drive',tLog:'Log',tSetup:'Setup',ok:'Within limit',over:'SLOW DOWN',say:'Slow down. Limit is {l} kilometres.',noGps:'Waiting for GPS…',gpsOk:'GPS ok · accuracy {a} m',gpsOff:'Trip not started',gpsErr:'GPS not allowed. Allow location for this app.',hello:'Hello, {n}',who:'On duty · {p}',none:'No over-speed. Well done.',noteScore:'{e} alerts in the last 7 days',confirmClear:'Delete all saved events?',max:'max',sec:'s',ready:'Ready',notReady:'Open once on Wi-Fi',saved:'Saved'},
+ ar:{speed:'سرعتك',start:'ابدأ الرحلة',stop:'إنهاء الرحلة',limit:'حد السرعة',limitNote:'غيّره فقط عند التوقف',score:'نقاط السلامة (٧ أيام)',test:'اختبر التنبيه',events:'سجل تجاوز السرعة',shareCsv:'مشاركة السجل (CSV)',shareWa:'إرسال ملخص',logNote:'كل شيء محفوظ على هذا الهاتف. أرسل السجل عند توفر الواي فاي.',setup:'إعداد السائق',fName:'اسم السائق',fPlate:'رقم المركبة',fLimit:'حد سرعة الشركة (كم/س)',fTol:'نبّه عند التجاوز بـ (كم/س)',save:'حفظ',offline:'يعمل بدون إنترنت',offlineNote:'يعمل GPS بدون إنترنت. ثبّت التطبيق مرة واحدة على الواي فاي: قائمة المتصفح ← إضافة إلى الشاشة الرئيسية. أبقِ الشاشة مضاءة أثناء الرحلة.',clear:'مسح السجل',tDrive:'القيادة',tLog:'السجل',tSetup:'الإعداد',ok:'ضمن الحد',over:'خفّف السرعة',say:'خفّف السرعة. الحد {l} كيلومتر.',noGps:'بانتظار GPS…',gpsOk:'GPS يعمل · الدقة {a} م',gpsOff:'لم تبدأ الرحلة',gpsErr:'الموقع غير مسموح. اسمح بالموقع لهذا التطبيق.',hello:'مرحباً {n}',who:'في العمل · {p}',none:'لا تجاوز للسرعة. أحسنت.',noteScore:'{e} تنبيهات في آخر ٧ أيام',confirmClear:'حذف كل الأحداث المحفوظة؟',max:'أقصى',sec:'ث',ready:'جاهز',notReady:'افتحه مرة على الواي فاي',saved:'تم الحفظ'},
+ ur:{speed:'آپ کی رفتار',start:'سفر شروع کریں',stop:'سفر ختم کریں',limit:'رفتار کی حد',limitNote:'صرف رکنے پر تبدیل کریں',score:'سیفٹی اسکور (۷ دن)',test:'الرٹ آزمائیں',events:'تیز رفتاری کا ریکارڈ',shareCsv:'ریکارڈ بھیجیں (CSV)',shareWa:'خلاصہ بھیجیں',logNote:'سب کچھ اسی فون میں محفوظ ہے۔ وائی فائی ملنے پر ریکارڈ بھیجیں۔',setup:'ڈرائیور سیٹ اپ',fName:'ڈرائیور کا نام',fPlate:'گاڑی کا نمبر',fLimit:'کمپنی کی رفتار کی حد (کلومیٹر)',fTol:'حد سے اتنا زیادہ ہونے پر الرٹ (کلومیٹر)',save:'محفوظ کریں',offline:'انٹرنیٹ کے بغیر چلتا ہے',offlineNote:'جی پی ایس انٹرنیٹ کے بغیر کام کرتا ہے۔ ایک بار وائی فائی پر انسٹال کریں: براؤزر مینو ← Add to Home screen۔ سفر کے دوران اسکرین آن رکھیں۔',clear:'ریکارڈ صاف کریں',tDrive:'ڈرائیو',tLog:'ریکارڈ',tSetup:'سیٹ اپ',ok:'حد کے اندر',over:'رفتار کم کریں',say:'رفتار کم کریں۔ حد {l} کلومیٹر ہے۔',noGps:'جی پی ایس کا انتظار…',gpsOk:'جی پی ایس ٹھیک · درستگی {a} میٹر',gpsOff:'سفر شروع نہیں ہوا',gpsErr:'لوکیشن کی اجازت نہیں۔ اس ایپ کو لوکیشن کی اجازت دیں۔',hello:'السلام علیکم، {n}',who:'ڈیوٹی پر · {p}',none:'کوئی تیز رفتاری نہیں۔ شاباش۔',noteScore:'پچھلے ۷ دن میں {e} الرٹ',confirmClear:'سارا محفوظ ریکارڈ مٹا دیں؟',max:'زیادہ سے زیادہ',sec:'سیکنڈ',ready:'تیار',notReady:'ایک بار وائی فائی پر کھولیں',saved:'محفوظ ہو گیا'}
+};
+var VOICE={en:'en-US',ar:'ar-SA',ur:'ur-PK'};
+var KEY='fineguard.v1';
+var st=load();
+function load(){try{var s=JSON.parse(localStorage.getItem(KEY));if(s&&s.cfg)return s;}catch(e){}return{cfg:{name:'',plate:'',limit:80,tol:3,lang:'en'},events:[]};}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(st));}catch(e){}}
+function t(k,v){var s=(T[st.cfg.lang]||T.en)[k]||T.en[k]||k;if(v)for(var x in v)s=s.replace('{'+x+'}',v[x]);return s;}
+function $(id){return document.getElementById(id);}
+
+var running=false,watchId=null,wake=null,last=null,speedKmh=null,overSince=null,okSince=null,ev=null,lastSay=0,testTimer=null,acc=null;
+
+function render(){
+ var c=st.cfg,rtl=c.lang!=='en';
+ document.documentElement.lang=c.lang;document.documentElement.dir=rtl?'rtl':'ltr';
+ document.querySelectorAll('[data-t]').forEach(function(el){el.textContent=t(el.getAttribute('data-t'));});
+ document.querySelectorAll('.langs button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-lang')===c.lang);});
+ $('hello').textContent=c.name?t('hello',{n:c.name}):'FineGuard';
+ $('who').textContent=c.plate?t('who',{p:'\u2068'+c.plate+'\u2069'}):'';
+ $('sign').textContent=c.limit;$('limitVal').textContent=c.limit;
+ $('startBtn').textContent=running?t('stop'):t('start');$('startBtn').className='btn '+(running?'stop':'primary');
+ var moving=speedKmh!==null&&speedKmh>5;$('minus').disabled=moving;$('plus').disabled=moving;
+ drawSpeed();drawScore();drawLog();
+ var sel=$('fLimit');if(!sel.options.length){for(var l=40;l<=140;l+=10){var o=document.createElement('option');o.value=l;o.textContent=l;sel.appendChild(o);}}
+ sel.value=String(c.limit);$('fName').value=c.name;$('fPlate').value=c.plate;$('fTol').value=String(c.tol);
+ var ready='serviceWorker' in navigator&&navigator.serviceWorker.controller;
+ $('offPill').textContent=ready?t('ready'):t('notReady');$('offPill').className='pill'+(ready?'':' off');
+}
+function drawSpeed(){
+ var over=ev!==null;
+ $('speedCard').className='speed'+(over?' over':'');
+ $('spd').textContent=speedKmh===null?'--':Math.round(speedKmh);
+ $('status').textContent=!running&&!testTimer?'':(over?t('over')+' — '+st.cfg.limit+' km/h':(speedKmh===null?'':t('ok')));
+ $('gps').textContent=testTimer?'TEST':!running?t('gpsOff'):(acc===null?t('noGps'):t('gpsOk',{a:Math.round(acc)}));
+}
+function weekEvents(){var since=Date.now()-7*864e5;return st.events.filter(function(e){return e.start>=since&&!e.test;});}
+function drawScore(){
+ var es=weekEvents(),secs=es.reduce(function(a,e){return a+e.secs;},0);
+ var s=Math.max(0,100-5*es.length-Math.floor(secs/10));
+ var r=$('ring');r.textContent=s;
+ r.style.background=s>=80?'#E6F4EA':s>=60?'#FFF4DB':'#FDEDE4';r.style.color=s>=80?'#15703A':s>=60?'#8A5A00':'#B4410C';
+ $('scoreNote').textContent=t('noteScore',{e:es.length});
+}
+function fmt(ts){var d=new Date(ts);function p(n){return(n<10?'0':'')+n;}return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());}
+function drawLog(){
+ var box=$('events');box.innerHTML='';
+ var list=st.events.slice().reverse().slice(0,100);
+ if(!list.length){var p=document.createElement('p');p.className='muted';p.textContent=t('none');box.appendChild(p);return;}
+ list.forEach(function(e){
+  var row=document.createElement('div');row.className='ev';
+  var a=document.createElement('div');var l1=document.createElement('div');l1.textContent=fmt(e.start)+(e.test?' · TEST':'');
+  var l2=document.createElement('div');l2.className='t';l2.textContent='\u2068'+st.cfg.plate+'\u2069 · '+e.limit+' km/h · '+e.secs+' '+t('sec')+(e.lat?' · '+e.lat.toFixed(4)+', '+e.lon.toFixed(4):'');
+  a.appendChild(l1);a.appendChild(l2);
+  var b=document.createElement('b');b.textContent=t('max')+' '+e.max;
+  row.appendChild(a);row.appendChild(b);box.appendChild(row);
+ });
+}
+
+// ---- alert sound + voice (both work offline)
+var actx=null;
+function beep(){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();var o=actx.createOscillator(),g=actx.createGain();o.type='square';o.frequency.value=880;g.gain.value=0.15;o.connect(g);g.connect(actx.destination);o.start();setTimeout(function(){o.frequency.value=660;},180);setTimeout(function(){o.stop();},400);}catch(e){}}
+function speak(){
+ beep();
+ try{if(!('speechSynthesis' in window))return;var u=new SpeechSynthesisUtterance(t('say',{l:st.cfg.limit}));u.lang=VOICE[st.cfg.lang];
+  var vs=speechSynthesis.getVoices(),v=vs.find(function(x){return x.lang&&x.lang.toLowerCase().indexOf(st.cfg.lang)===0;});
+  if(v)u.voice=v;else if(st.cfg.lang!=='en'){u=new SpeechSynthesisUtterance(T.en.say.replace('{l}',st.cfg.limit));u.lang='en-US';}
+  speechSynthesis.cancel();setTimeout(function(){speechSynthesis.speak(u);},450);}catch(e){}
+ if(navigator.vibrate)navigator.vibrate([300,150,300]);
+}
+
+// ---- core: decide over-speed from a speed reading
+function onSpeed(kmh,lat,lon,isTest){
+ speedKmh=kmh;var now=Date.now(),lim=st.cfg.limit,over=kmh>lim+Number(st.cfg.tol);
+ if(over){okSince=null;if(overSince===null)overSince=now;
+  if(ev===null&&now-overSince>=3000){ev={start:overSince,end:now,max:Math.round(kmh),limit:lim,lat:lat,lon:lon,secs:0,test:!!isTest};lastSay=0;}
+  if(ev){ev.max=Math.max(ev.max,Math.round(kmh));ev.end=now;ev.secs=Math.round((now-ev.start)/1000);if(now-lastSay>15000){lastSay=now;speak();}}
+ }else{overSince=null;if(ev){if(okSince===null)okSince=now;if(now-okSince>=3000){st.events.push(ev);if(st.events.length>2000)st.events=st.events.slice(-2000);save();ev=null;okSince=null;}}}
+ render();
+}
+function dist(a,b){var R=6371000,r=Math.PI/180,dl=(b.lat-a.lat)*r,dn=(b.lon-a.lon)*r,x=Math.sin(dl/2)*Math.sin(dl/2)+Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dn/2)*Math.sin(dn/2);return 2*R*Math.asin(Math.sqrt(x));}
+function onPos(p){
+ var c=p.coords,cur={lat:c.latitude,lon:c.longitude,t:p.timestamp};acc=c.accuracy;
+ var kmh=null;
+ if(c.speed!==null&&c.speed!==undefined&&!isNaN(c.speed)&&c.speed>=0)kmh=c.speed*3.6;
+ else if(last&&cur.t>last.t){var d=dist(last,cur),dt=(cur.t-last.t)/1000;if(dt>0.5&&c.accuracy<50)kmh=d/dt*3.6;}
+ last=cur;
+ if(kmh!==null){if(speedKmh!==null)kmh=speedKmh*0.4+kmh*0.6;onSpeed(kmh,cur.lat,cur.lon,false);}else render();
+}
+function onErr(e){acc=null;$('gps').textContent=e.code===1?t('gpsErr'):t('noGps');}
+
+function start(){
+ if(!('geolocation' in navigator)){alert(t('gpsErr'));return;}
+ running=true;last=null;speedKmh=null;acc=null;
+ watchId=navigator.geolocation.watchPosition(onPos,onErr,{enableHighAccuracy:true,maximumAge:0,timeout:20000});
+ try{if('wakeLock' in navigator)navigator.wakeLock.request('screen').then(function(w){wake=w;}).catch(function(){});}catch(e){}
+ try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();actx.resume&&actx.resume();}catch(e){}
+ render();
+}
+function stop(){
+ running=false;if(watchId!==null)navigator.geolocation.clearWatch(watchId);watchId=null;
+ if(ev){st.events.push(ev);save();ev=null;}
+ overSince=null;okSince=null;speedKmh=null;acc=null;
+ try{wake&&wake.release();}catch(e){}wake=null;render();
+}
+document.addEventListener('visibilitychange',function(){if(running&&document.visibilityState==='visible'&&'wakeLock' in navigator){navigator.wakeLock.request('screen').then(function(w){wake=w;}).catch(function(){});}});
+
+// ---- test: simulate 70 → limit+18 → 60 km/h, no GPS needed
+function test(){
+ if(testTimer)return;var lim=st.cfg.limit,seq=[],i;
+ for(i=0;i<4;i++)seq.push(lim-10);for(i=0;i<8;i++)seq.push(lim+18);for(i=0;i<5;i++)seq.push(lim-20);
+ var k=0;try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();actx.resume&&actx.resume();}catch(e){}
+ testTimer=setInterval(function(){
+  if(k>=seq.length){clearInterval(testTimer);testTimer=null;if(ev){st.events.push(ev);save();ev=null;}speedKmh=null;overSince=null;okSince=null;render();return;}
+  onSpeed(seq[k++],null,null,true);
+ },1000);
+}
+
+// ---- export (works offline; sending needs a connection)
+function csv(){
+ var rows=[['driver','plate','start','end','seconds_over','max_kmh','limit_kmh','latitude','longitude','test']];
+ st.events.forEach(function(e){rows.push([st.cfg.name,st.cfg.plate,fmt(e.start),fmt(e.end),e.secs,e.max,e.limit,e.lat||'',e.lon||'',e.test?'yes':'no']);});
+ return rows.map(function(r){return r.map(function(x){x=String(x);return /[",\n]/.test(x)?'"'+x.replace(/"/g,'""')+'"':x;}).join(',');}).join('\n');
+}
+function shareCsv(){
+ var name='fineguard_'+(st.cfg.plate||'vehicle').replace(/\W+/g,'')+'_'+fmt(Date.now()).slice(0,10)+'.csv';
+ var blob=new Blob(['﻿'+csv()],{type:'text/csv'});
+ try{var f=new File([blob],name,{type:'text/csv'});if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:name}).catch(function(){});return;}}catch(e){}
+ var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();
+}
+function shareWa(){
+ var es=weekEvents(),s=$('ring').textContent;
+ var msg='FineGuard · '+st.cfg.name+' · '+st.cfg.plate+'\nScore (7 days): '+s+'\nOver-speed alerts: '+es.length+(es.length?'\nMax: '+Math.max.apply(null,es.map(function(e){return e.max;}))+' km/h (limit '+st.cfg.limit+')':'');
+ window.location.href='https://wa.me/?text='+encodeURIComponent(msg);
+}
+
+// ---- wiring
+document.querySelectorAll('.langs button').forEach(function(b){b.addEventListener('click',function(){st.cfg.lang=b.getAttribute('data-lang');save();render();});});
+document.querySelectorAll('nav button').forEach(function(b){b.addEventListener('click',function(){show(b.getAttribute('data-view'));});});
+function show(v){['drive','log','setup'].forEach(function(x){$('v-'+x).classList.toggle('hide',x!==v);});document.querySelectorAll('nav button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-view')===v);});render();}
+$('startBtn').addEventListener('click',function(){running?stop():start();});
+$('minus').addEventListener('click',function(){st.cfg.limit=Math.max(30,st.cfg.limit-10);save();render();});
+$('plus').addEventListener('click',function(){st.cfg.limit=Math.min(140,st.cfg.limit+10);save();render();});
+$('testBtn').addEventListener('click',test);
+$('shareCsv').addEventListener('click',shareCsv);
+$('shareWa').addEventListener('click',shareWa);
+$('saveBtn').addEventListener('click',function(){st.cfg.name=$('fName').value.trim();st.cfg.plate=$('fPlate').value.trim().toUpperCase();st.cfg.limit=Number($('fLimit').value);st.cfg.tol=Number($('fTol').value);save();show('drive');});
+$('clearBtn').addEventListener('click',function(){if(confirm(t('confirmClear'))){st.events=[];save();render();}});
+if('speechSynthesis' in window){speechSynthesis.getVoices();speechSynthesis.onvoiceschanged=function(){};}
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').then(function(){navigator.serviceWorker.ready.then(render);}).catch(function(){});}
+window.FG={onSpeed:onSpeed,state:function(){return st;},csv:csv};
+show(st.cfg.name?'drive':'setup');
+})();
+</script>
+</body>
+</html>
